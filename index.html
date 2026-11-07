@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <title>JTV~OFICIAL</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="public-wrap">
+    <div class="logo-mark" aria-label="JTV Oficial">👑<span>JTV~OFICIAL</span></div>
+    <p class="subtitle">TUS ENLACES OFICIALES</p>
+    <section class="public-links" id="links">
+      <p class="loading">Cargando enlaces...</p>
+    </section>
+    <p class="footer">JTV~OFICIAL</p>
+  </main>
+  <script>
+    const items = [
+      ["youtube", "▶️", "Canal de YouTube"],
+      ["whatsapp", "💬", "Canal de WhatsApp"],
+      ["archivo", "📁", "Descargar Archivo Nuevo"],
+      ["freeRecomendado", "🎮", "FREE RECOMENDADO"],
+      ["vip", "👑", "COMPRAR VIP"]
+    ];
+    async function loadLinks() {
+      const container = document.getElementById("links");
+      try {
+        const response = await fetch("/.netlify/functions/links");
+        if (!response.ok) throw new Error("No se pudieron cargar los enlaces");
+        const data = await response.json();
+        container.innerHTML = "";
+        let count = 0;
+        for (const [key, icon, label] of items) {
+          const url = (data.links || {})[key];
+          if (!url) continue;
+          const a = document.createElement("a");
+          a.className = "link-button";
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.innerHTML = `<span class="link-icon">${icon}</span><span>${label}</span><span class="arrow">›</span>`;
+          container.appendChild(a);
+          count++;
+        }
+        if (!count) container.innerHTML = '<p class="empty">Todavía no hay enlaces configurados.</p>';
+      } catch (e) {
+        container.innerHTML = '<p class="empty">No se pudieron cargar los enlaces. Revisá la configuración del sitio.</p>';
+      }
+    }
+    loadLinks();
+  </script>
+</body>
+</html>

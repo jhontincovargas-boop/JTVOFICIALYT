@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <title>Panel administrador | JTV~OFICIAL</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="admin-wrap">
+    <header class="admin-header">
+      <div class="admin-title">🔧 PANEL JTV~OFICIAL 🔧</div>
+      <p>ADMINISTRADOR PRIVADO</p>
+    </header>
+    <section class="admin-card">
+      <label class="field-label" for="password">🔐 Contraseña de administrador</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Escribí tu contraseña">
+      <p class="hint">La contraseña se configura en Netlify. No la compartas.</p>
+      <div class="field">
+        <label class="field-label" for="youtube">▶️ Canal de YouTube</label>
+        <input id="youtube" type="url" placeholder="https://www.youtube.com/...">
+      </div>
+      <div class="field">
+        <label class="field-label" for="whatsapp">💬 Canal de WhatsApp</label>
+        <input id="whatsapp" type="url" placeholder="https://whatsapp.com/channel/...">
+      </div>
+      <div class="field">
+        <label class="field-label" for="archivo">📁 Archivo Nuevo</label>
+        <input id="archivo" type="url" placeholder="Pegá el enlace del archivo">
+      </div>
+      <div class="field">
+        <label class="field-label" for="freeRecomendado">🎮 FREE RECOMENDADO</label>
+        <input id="freeRecomendado" type="url" placeholder="Pegá el enlace de Free recomendado">
+      </div>
+      <div class="field">
+        <label class="field-label" for="vip">👑 Comprar VIP</label>
+        <input id="vip" type="url" placeholder="Pegá el enlace de compra VIP">
+      </div>
+      <button id="save">GUARDAR CAMBIOS</button>
+      <p id="status" class="status" role="status"></p>
+      <a class="back-link" href="/">← Ver página pública</a>
+    </section>
+    <p class="footer">Los cambios se reflejan en la página pública.</p>
+  </main>
+  <script>
+    const keys = ["youtube", "whatsapp", "archivo", "freeRecomendado", "vip"];
+    const statusEl = document.getElementById("status");
+    async function loadCurrentLinks() {
+      try {
+        const r = await fetch("/.netlify/functions/links");
+        const d = await r.json();
+        keys.forEach(k => document.getElementById(k).value = (d.links || {})[k] || "");
+      } catch (_) {
+        statusEl.textContent = "No se pudieron cargar los enlaces actuales.";
+        statusEl.className = "status error";
+      }
+    }
+    document.getElementById("save").addEventListener("click", async () => {
+      const password = document.getElementById("password").value;
+      if (!password) {
+        statusEl.textContent = "Primero escribí la contraseña de administrador.";
+        statusEl.className = "status error";
+        return;
+      }
+      const links = {};
+      for (const k of keys) links[k] = document.getElementById(k).value.trim();
+      statusEl.textContent = "Guardando...";
+      statusEl.className = "status";
+      try {
+        const r = await fetch("/.netlify/functions/links", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({password, links})
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "No se pudieron guardar los cambios.");
+        statusEl.textContent = "¡Cambios guardados! La página pública ya tiene los nuevos enlaces.";
+        statusEl.className = "status success";
+      } catch (e) {
+        statusEl.textContent = e.message;
+        statusEl.className = "status error";
+      }
+    });
+    loadCurrentLinks();
+  </script>
+</body>
+</html>
